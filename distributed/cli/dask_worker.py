@@ -250,6 +250,16 @@ pem_file_option_type = click.Path(exists=True, resolve_path=True)
     help="Module that should be loaded by each nanny "
     'like "foo.bar" or "/path/to/foo.py"',
 )
+
+@click.option(
+    "--nanny-contact-address",
+    type=str,
+    default=None,
+    help="The address the nanny advertises to the scheduler for "
+    "communication with it."
+    "Example: tcp://127.0.0.1:3000",
+)
+
 @click.version_option()
 def main(
     scheduler,
@@ -258,6 +268,7 @@ def main(
     listen_address,
     contact_address,
     nanny_port,
+    nanny_contact_address,
     nthreads,
     nprocs,
     n_workers,
@@ -440,6 +451,7 @@ def main(
             loop=loop,
             resources=resources,
             security=sec,
+            nanny_contact_address=nanny_contact_address,
             contact_address=contact_address,
             host=host,
             port=port,
