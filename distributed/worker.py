@@ -511,6 +511,7 @@ class Worker(ServerNode):
     has_what: defaultdict[str, set[str]]  # {worker address: {ts.key, ...}
     pending_data_per_worker: defaultdict[str, UniqueTaskHeap]
     nanny: Nanny | None
+    nanny_contact_address: str | None
     _lock: threading.Lock
     data_needed: UniqueTaskHeap
     in_flight_workers: dict[str, set[str]]  # {worker address: {ts.key, ...}}
@@ -650,6 +651,7 @@ class Worker(ServerNode):
         dashboard: bool = False,
         http_prefix: str = "/",
         nanny: Nanny | None = None,
+        nanny_contact_address: str | None = None,
         plugins: tuple[WorkerPlugin, ...] = (),
         low_level_profiler: bool | None = None,
         validate: bool | None = None,
@@ -664,6 +666,7 @@ class Worker(ServerNode):
         self.has_what = defaultdict(set)
         self.pending_data_per_worker = defaultdict(UniqueTaskHeap)
         self.nanny = nanny
+        self.nanny_contact_address = nanny_contact_address
         self._lock = threading.Lock()
 
         self.data_needed = UniqueTaskHeap()
@@ -1240,6 +1243,8 @@ class Worker(ServerNode):
         start = time()
         if self.contact_address is None:
             self.contact_address = self.address
+        if self.nanny_contact_address is None:
+            self.nanny_contact_address = self.nanny
         logger.info("-" * 49)
         while True:
             try:
@@ -1270,7 +1275,7 @@ class Worker(ServerNode):
                         memory_limit=self.memory_limit,
                         local_directory=self.local_directory,
                         services=self.service_ports,
-                        nanny=self.nanny,
+                        nanny=self.nanny_contact_address,
                         pid=os.getpid(),
                         versions=get_versions(),
                         metrics=await self.get_metrics(),

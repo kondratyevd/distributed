@@ -314,7 +314,8 @@ class SpecCluster(Cluster):
             to_close = set(self.workers) - set(self.worker_spec)
             if to_close:
                 if self.scheduler.status == Status.running:
-                    await self.scheduler_comm.retire_workers(workers=list(to_close))
+                    worker_names = ["htcondor--%s--" % self.workers[idx].job_id for idx in to_close]
+                    await self.scheduler_comm.retire_workers(names=worker_names)
                 tasks = [
                     asyncio.create_task(self.workers[w].close())
                     for w in to_close
@@ -338,7 +339,7 @@ class SpecCluster(Cluster):
                     opts["name"] = name
                 if isinstance(cls, str):
                     cls = import_term(cls)
-                worker = cls(self.scheduler.address, **opts)
+                worker = cls(getattr(self.scheduler, "external_address", None) or self.scheduler.address, **opts)
                 self._created.add(worker)
                 workers.append(worker)
             if workers:
